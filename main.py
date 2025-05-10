@@ -3,6 +3,8 @@ import discord
 from discord.ext import commands
 from discord.ui import Button, View
 
+from myserver import server_on
+
 # โหลด TOKEN จาก Environment Variable
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
@@ -97,5 +99,6 @@ async def สร้างปุ่ม(ctx):
     view.add_item(button)
 
     await ctx.send(embed=embed, view=view)
+server_on()
 
 bot.run(TOKEN)
