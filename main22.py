@@ -28,8 +28,9 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 LOCATIONS = [
     {"name": "กรุงเทพมหานคร", "lat": 13.7563, "lon": 100.5018},
     {"name": "อุทัยธานี", "lat": 15.4712, "lon": 99.6799},
+    {"name": "ชัยนาท", "lat": 15.0743, "lon": 100.1301},
     {"name": "เชียงราย", "lat": 19.9126, "lon": 99.8310},
-    {"name": "ชัยนาท", "lat": 15.0743, "lon": 100.1301}
+    {"name": "เชียงใหม่", "lat": 18.7883, "lon": 98.9853}
 ]
 
 thai_days = {
