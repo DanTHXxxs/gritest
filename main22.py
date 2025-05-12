@@ -73,7 +73,7 @@ async def get_weather(location):
             else:
                 return f"{location['name']}: ข้อมูลไม่พร้อมใช้งาน (รหัส {response.status})"
 
-@tasks.loop(minutes=2)
+@tasks.loop(minutes=1)
 async def update_weather():
     global WEATHER_MESSAGE_ID
     weather_channel = bot.get_channel(WEATHER_CHANNEL_ID)
@@ -85,7 +85,7 @@ async def update_weather():
 
     embed = discord.Embed(title="**รายงานสภาพอากาศ 🌦️**", color=0x3399ff)
     embed.description = "\n".join(lines)
-    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 2 นาที")
+    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 1 นาที")
 
     try:
         if WEATHER_MESSAGE_ID:
