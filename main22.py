@@ -72,7 +72,7 @@ async def get_weather(location):
             else:
                 return f"{location['name']}: ข้อมูลไม่พร้อมใช้งาน (รหัส {response.status})"
 
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=2)
 async def update_weather():
     global WEATHER_MESSAGE_ID
     weather_channel = bot.get_channel(WEATHER_CHANNEL_ID)
@@ -84,7 +84,7 @@ async def update_weather():
 
     embed = discord.Embed(title="**รายงานสภาพอากาศ 🌦️**", color=0x3399ff)
     embed.description = "\n".join(lines)
-    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 10 นาที")
+    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 2 นาที")
 
     try:
         if WEATHER_MESSAGE_ID:
@@ -97,7 +97,8 @@ async def update_weather():
         msg = await weather_channel.send(embed=embed)
         WEATHER_MESSAGE_ID = msg.id
 
-@tasks.loop(minutes=5)
+
+@tasks.loop(seconds=10)
 async def update_group_status():
     global STATUS_MESSAGE_ID
     guild = bot.get_guild(GUILD_ID)
@@ -121,7 +122,7 @@ async def update_group_status():
     embed.add_field(name="〔👥〕สมาชิกทั้งหมด", value=f"{guild.member_count} คน", inline=True)
     embed.add_field(name="〔🟢〕ออนไลน์", value=f"{online} คน", inline=True)
     embed.add_field(name="〔⚫〕ออฟไลน์", value=f"{offline} คน", inline=True)
-    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 5 นาที")
+    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 10 วินาที")
 
     try:
         if STATUS_MESSAGE_ID:
