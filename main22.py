@@ -83,8 +83,15 @@ async def update_weather():
         result = await get_weather(location)
         lines.append(result)
 
+    # เพิ่มเวลาปัจจุบันในเขตเวลาไทย
+    now = datetime.now(pytz.timezone("Asia/Bangkok"))
+    day_th = thai_days[now.strftime('%A')]
+    month_th = thai_months[now.strftime('%B')]
+    year_th = now.year + 543
+    update_time = f"{day_th} ที่ {now.day} {month_th} พ.ศ. {year_th} เวลา {now.strftime('%H:%M:%S')}"
+
     embed = discord.Embed(title="**รายงานสภาพอากาศ 🌦️**", color=0x3399ff)
-    embed.description = "\n".join(lines)
+    embed.description = "\n".join(lines) + f"\n\n〔⏰〕อัปเดตข้อมูลเมื่อ {update_time}"
     embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 1 นาที")
 
     try:
