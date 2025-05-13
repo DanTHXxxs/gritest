@@ -220,6 +220,16 @@ async def update_group_status():
         msg = await status_channel.send(embed=embed)
         STATUS_MESSAGE_ID = msg.id
 
+
+@bot.command(name="join")
+async def join(ctx):
+    if ctx.author.voice:  # ตรวจสอบว่าผู้ใช้กำลังอยู่ใน Voice Channel หรือไม่
+        channel = ctx.author.voice.channel
+        await channel.connect()
+        await ctx.send(f"เข้าร่วมช่องเสียง: {channel.name}")
+    else:
+        await ctx.send("คุณต้องอยู่ในช่องเสียงก่อนถึงจะใช้คำสั่งนี้ได้")
+
 @bot.event
 async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
