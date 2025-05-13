@@ -26,8 +26,7 @@ intents.presences = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 LOCATIONS = [
-    {"name": "ภาคกลาง"},
-   {"name": "กรุงเทพมหานคร", "lat": 13.7563, "lon": 100.5018},
+  {"name": "กรุงเทพมหานคร", "lat": 13.7563, "lon": 100.5018},
   {"name": "พิษณุโลก", "lat": 16.8289, "lon": 100.2729},
   {"name": "สุโขทัย", "lat": 17.0078, "lon": 99.8235},
   {"name": "เพชรบูรณ์", "lat": 16.4190, "lon": 101.1606},
