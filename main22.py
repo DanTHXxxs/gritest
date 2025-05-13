@@ -23,7 +23,8 @@ intents.members = True
 intents.guilds = True
 intents.presences = True
 
-bot = commands.Bot(command_prefix=["!", "~"], intents=intents)
+bot = commands.Bot(command_prefix="×", intents=intents)
+
 
 LOCATIONS = [
     {"name": "🟢ภาคเหนือ | เชียงใหม่", "lat": 18.7883, "lon": 98.9853},
@@ -219,16 +220,6 @@ async def update_group_status():
     except discord.NotFound:
         msg = await status_channel.send(embed=embed)
         STATUS_MESSAGE_ID = msg.id
-
-
-@bot.command(name='join')
-async def join(ctx):
-    if ctx.author.voice:
-        channel = ctx.author.voice.channel
-        await channel.connect()
-        await ctx.send(f"เข้าร่วมห้องเสียง: {channel.name}")
-    else:
-        await ctx.send("คุณต้องอยู่ในห้องเสียงก่อนนะครับ")
 
 @bot.event
 async def on_ready():
