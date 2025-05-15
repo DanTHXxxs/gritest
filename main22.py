@@ -227,7 +227,7 @@ async def update_group_status():
 
         
 
-@tasks.loop(minutes=60)
+@tasks.loop(seconds=10)
 async def check_festival():
     now = datetime.now(pytz.timezone('Asia/Bangkok'))
     today_str = now.strftime("%m-%d")
