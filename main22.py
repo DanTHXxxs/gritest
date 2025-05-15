@@ -249,6 +249,7 @@ async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
     update_group_status.start()
+    check_festival.start()
 
 server_on()
 
