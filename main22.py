@@ -228,29 +228,21 @@ async def update_group_status():
         
 
 @tasks.loop(minutes=60)
-async def update_festival():
-    try:
-        now = datetime.now(pytz.timezone("Asia/Bangkok"))
-        today = now.strftime("%Y-%m-%d")
+async def check_festival():
+    now = datetime.now(pytz.timezone('Asia/Bangkok'))
+    today_str = now.strftime("%m-%d")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://calendar.kapook.com/view-2566-{now.strftime('%m')}-{now.strftime('%d')}.html") as resp:
-                text = await resp.text()
-                if "พืชมงคล" in text:
-                    festival_name = "วันพืชมงคล"
-                else:
-                    festival_name = "ไม่มีเทศกาลสำคัญวันนี้"
+    festival_messages = {
+        "01-01": "สวัสดีปีใหม่! ขอให้ปีนี้เป็นปีที่ดีของทุกคน!",
+        "04-13": "สุขสันต์วันสงกรานต์ ขอให้ทุกคนมีความสุขมาก ๆ นะครับ!",
+        "08-12": "สุขสันต์วันแม่แห่งชาติ ขอให้คุณแม่ทุกท่านมีสุขภาพแข็งแรง!",
+        "12-05": "วันพ่อแห่งชาติ ขอให้คุณพ่อทั่วประเทศมีแต่ความสุข!",
+    }
 
+    if today_str in festival_messages:
         channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
         if channel:
-            await channel.edit(topic=f"เทศกาลวันนี้: {festival_name}")
-    except Exception as e:
-        print(f"เกิดข้อผิดพลาดในการอัปเดตเทศกาล: {e}")
-
-@bot.event
-async def on_ready():
-    print(f"บอทเข้าสู่ระบบแล้วในชื่อ {bot.user}")
-    update_festival.start()
+            await channel.send(festival_messages[today_str])
 
 @bot.event
 async def on_ready():
