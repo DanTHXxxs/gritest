@@ -15,6 +15,7 @@ TOKEN = os.environ.get("DISCORD_TOKEN")
 
 WEATHER_CHANNEL_ID = 1371471375361114182  # แชนแนลสำหรับอากาศ
 STATUS_CHANNEL_ID = 1371468773403660338  # แชนแนลสำหรับสถานะกลุ่ม
+FESTIVAL_CHANNEL_ID = 1372613788229963786
 GUILD_ID = 905530303467094027
 API_KEY = '56c594de7daca68b44c11aa5feb133d1'
 
@@ -223,6 +224,33 @@ async def update_group_status():
     except discord.NotFound:
         msg = await status_channel.send(embed=embed)
         STATUS_MESSAGE_ID = msg.id
+
+        
+
+@tasks.loop(minutes=60)
+async def update_festival():
+    try:
+        now = datetime.now(pytz.timezone("Asia/Bangkok"))
+        today = now.strftime("%Y-%m-%d")
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://calendar.kapook.com/view-2566-{now.strftime('%m')}-{now.strftime('%d')}.html") as resp:
+                text = await resp.text()
+                if "พืชมงคล" in text:
+                    festival_name = "วันพืชมงคล"
+                else:
+                    festival_name = "ไม่มีเทศกาลสำคัญวันนี้"
+
+        channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
+        if channel:
+            await channel.edit(topic=f"เทศกาลวันนี้: {festival_name}")
+    except Exception as e:
+        print(f"เกิดข้อผิดพลาดในการอัปเดตเทศกาล: {e}")
+
+@bot.event
+async def on_ready():
+    print(f"บอทเข้าสู่ระบบแล้วในชื่อ {bot.user}")
+    update_festival.start()
 
 @bot.event
 async def on_ready():
