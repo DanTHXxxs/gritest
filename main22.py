@@ -253,7 +253,7 @@ async def update_group_status():
         STATUS_MESSAGE_ID = msg.id
         
         
-        def get_thai_season():
+def get_thai_season():
     now = datetime.now()
     day = now.day
     month = now.month
