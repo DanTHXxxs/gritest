@@ -139,6 +139,8 @@ thai_months = {
 
 WEATHER_MESSAGE_ID = 1371491919401717770
 STATUS_MESSAGE_ID = 1371491918076448798
+last_sent_date = None  # เก็บวันที่ที่ส่งข้อความล่าสุด
+
 
 
 
@@ -229,20 +231,24 @@ async def update_group_status():
 
 @tasks.loop(seconds=10)
 async def check_festival():
+    global last_sent_date
     now = datetime.now(pytz.timezone('Asia/Bangkok'))
     today_str = now.strftime("%m-%d")
 
     festival_messages = {
+        "05-16": "TEST",
         "01-01": "สวัสดีปีใหม่! ขอให้ปีนี้เป็นปีที่ดีของทุกคน!",
         "04-13": "สุขสันต์วันสงกรานต์ ขอให้ทุกคนมีความสุขมาก ๆ นะครับ!",
         "08-12": "สุขสันต์วันแม่แห่งชาติ ขอให้คุณแม่ทุกท่านมีสุขภาพแข็งแรง!",
         "12-05": "วันพ่อแห่งชาติ ขอให้คุณพ่อทั่วประเทศมีแต่ความสุข!",
     }
 
-    if today_str in festival_messages:
+    if today_str in festival_messages and last_sent_date != today_str:
         channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
         if channel:
             await channel.send(festival_messages[today_str])
+            last_sent_date = today_str  # บันทึกวันที่ที่ส่งแล้ว
+
 
 @bot.event
 async def on_ready():
