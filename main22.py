@@ -19,6 +19,12 @@ STATUS_CHANNEL_ID = 1371468773403660338  # แชนแนลสำหรับ�
 GUILD_ID = 905530303467094027
 API_KEY = '56c594de7daca68b44c11aa5feb133d1'
 
+fggchannel_id = 1372933691894136864  # แก้ตาม Channel ของคุณ
+message_file = "status_message_id.json"
+statusx_message = None
+update_interval = 10  # วินาที
+
+
 intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
@@ -111,10 +117,7 @@ LOCATIONS = [
     {"name": "สตูล", "lat": 6.6238, "lon": 100.0668}
 ]
 
-channel_id = 1372933691894136864  # แก้ตาม Channel ของคุณ
-message_file = "status_message_id.json"
-status_message = None
-update_interval = 10  # วินาที
+
 
 important_days = {
     "01-01": "วันขึ้นปีใหม่",
@@ -280,9 +283,9 @@ def get_thai_datetime_string():
 
 @tasks.loop(seconds=update_interval)
 async def update_status():
-    global status_message
+    global statusx_message
 
-    channel = bot.get_channel(channel_id)
+    channel = bot.get_channel(fggchannel_id)
     season = get_thai_season()
     event = get_today_event()
     now = datetime.now()
@@ -299,13 +302,13 @@ async def update_status():
         color=discord.Color.orange()
     )
 
-    if status_message is None:
-        status_message = await channel.send(embed=embed)
+    if statusx_message is None:
+        statusx_message = await channel.send(embed=embed)
         # บันทึก message_id ลงไฟล์
         with open(message_file, "w") as f:
-            json.dump({"message_id": status_message.id}, f)
+            json.dump({"message_id": statusx_message.id}, f)
     else:
-        await status_message.edit(embed=embed)
+        await statusx_message.edit(embed=embed)
         
 
 @bot.event
@@ -313,18 +316,18 @@ async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
     update_group_status.start()
-    global status_message
+    global statusx_message
     print(f"บอทพร้อมใช้งานแล้ว: {bot.user}")
-    channel = bot.get_channel(channel_id)
+    channel = bot.get_channel(fggchannel_id)
 
     # โหลด message_id จากไฟล์
     if os.path.exists(message_file):
         with open(message_file, "r") as f:
             data = json.load(f)
             try:
-                status_message = await channel.fetch_message(data["message_id"])
+                statusx_message = await channel.fetch_message(data["message_id"])
             except discord.NotFound:
-                status_message = None
+                statusx_message = None
 
     update_status.start()
 
