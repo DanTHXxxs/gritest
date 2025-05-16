@@ -232,13 +232,22 @@ async def update_group_status():
 
         
 
+festival_messages = {
+    "05-16": "โลกแตก",
+    "01-01": "สวัสดีปีใหม่! ขอให้ปีนี้เป็นปีที่ดีของทุกคน!",
+    "04-13": "สุขสันต์วันสงกรานต์ ขอให้ทุกคนมีความสุขมาก ๆ นะครับ!",
+    "08-12": "สุขสันต์วันแม่แห่งชาติ ขอให้คุณแม่ทุกท่านมีสุขภาพแข็งแรง!",
+    "12-05": "วันพ่อแห่งชาติ ขอให้คุณพ่อทั่วประเทศมีแต่ความสุข!",
+    "12-24": "สุขสันต์วันคริสต์มาสอีฟ! ขอให้คืนนี้อบอวลไปด้วยความสุขและความรัก!",
+    "12-25": "สุขสันต์วันคริสต์มาส! ขอให้คุณมีความสุขและอบอุ่นใจในวันแห่งความรักและการให้!",
+}
 
 @tasks.loop(seconds=10)  # ใช้ seconds เพื่อทดสอบ
 async def check_festival():
     now = datetime.now(pytz.timezone('Asia/Bangkok'))
     today_str = now.strftime("%m-%d")
 
-    if today_str == "05-15":  # ทดสอบในวันนี้
+    if today_str in festival_messages:
         channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
         if channel:
             try:
@@ -249,13 +258,8 @@ async def check_festival():
                 else:
                     await channel.send(msg.content)
 
-            except discord.NotFound:
-                print("ไม่พบข้อความด้วย ID ที่ระบุ")
-            except discord.Forbidden:
-                print("บอทไม่มีสิทธิ์เข้าถึงข้อความ")
-            except discord.HTTPException as e:
-                print(f"เกิดข้อผิดพลาดในการดึงข้อความ: {e}")
-
+            except Exception as e:
+                print(f"Error fetching or sending message: {e}")
 
 
 
