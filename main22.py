@@ -238,7 +238,7 @@ async def check_festival():
     now = datetime.now(pytz.timezone('Asia/Bangkok'))
     today_str = now.strftime("%m-%d")
 
-    if today_str == "12-25":  # ตัวอย่างวันคริสต์มาส
+    if today_str == "05-15":  # ทดสอบในวันนี้
         channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
         if channel:
             try:
