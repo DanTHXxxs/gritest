@@ -15,7 +15,6 @@ TOKEN = os.environ.get("DISCORD_TOKEN")
 
 WEATHER_CHANNEL_ID = 1371471375361114182  # แชนแนลสำหรับอากาศ
 STATUS_CHANNEL_ID = 1371468773403660338  # แชนแนลสำหรับสถานะกลุ่ม
-
 GUILD_ID = 905530303467094027
 API_KEY = '56c594de7daca68b44c11aa5feb133d1'
 
@@ -24,8 +23,7 @@ intents.members = True
 intents.guilds = True
 intents.presences = True
 
-bot = commands.Bot(command_prefix="×", intents=intents)
-
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 LOCATIONS = [
     {"name": "🟢ภาคเหนือ | เชียงใหม่", "lat": 18.7883, "lon": 98.9853},
@@ -137,27 +135,8 @@ thai_months = {
     'December': 'ธันวาคม'
 }
 
-
-FESTIVAL_CHANNEL_ID = 1372737530746900591  # แก้เป็น ID ช่องของคุณ
-
-festival_messages = {
-    "05-16": "แตด",
-    "01-01": "สวัสดีปีใหม่! ขอให้ปีนี้เป็นปีที่ดีของทุกคน!",
-    "04-13": "สุขสันต์วันสงกรานต์ ขอให้ทุกคนมีความสุขมาก ๆ นะครับ!",
-    "08-12": "สุขสันต์วันแม่แห่งชาติ ขอให้คุณแม่ทุกท่านมีสุขภาพแข็งแรง!",
-    "12-05": "วันพ่อแห่งชาติ ขอให้คุณพ่อทั่วประเทศมีแต่ความสุข!",
-    "12-24": "สุขสันต์วันคริสต์มาสอีฟ! ขอให้คืนนี้อบอวลไปด้วยความสุขและความรัก!",
-    "12-25": "สุขสันต์วันคริสต์มาส! ขอให้คุณมีความสุขและอบอุ่นใจในวันแห่งความรักและการให้!"
-}
-
-last_message_id = None
-last_date_sent = None
-
-
 WEATHER_MESSAGE_ID = 1371491919401717770
 STATUS_MESSAGE_ID = 1371491918076448798
-
-
 
 async def get_weather(location):
     async with aiohttp.ClientSession() as session:
@@ -241,68 +220,11 @@ async def update_group_status():
         msg = await status_channel.send(embed=embed)
         STATUS_MESSAGE_ID = msg.id
 
-        
-import discord
-from discord.ext import commands, tasks
-from datetime import datetime
-import pytz
-
-bot = commands.Bot(command_prefix="!")
-
-
-@tasks.loop(seconds=10)  # สำหรับทดสอบจริงให้เปลี่ยนเป็น minutes=60
-async def check_festival():
-    global last_message_id, last_date_sent
-
-    now = datetime.now(pytz.timezone('Asia/Bangkok'))
-    today_str = now.strftime("%m-%d")
-
-    channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
-    if not channel:
-        print("ไม่พบช่องที่ระบุ")
-        return
-
-    if today_str in festival_messages:
-        # ถ้าวันเปลี่ยน หรือยังไม่เคยส่งข้อความวันนี้
-        if last_date_sent != today_str:
-            # ส่งข้อความใหม่พร้อมกรอบ Embed
-            embed = discord.Embed(
-                title="🎉 ข้อความเทศกาล 🎉",
-                description=festival_messages[today_str],
-                color=0x00ff00
-            )
-            message = await channel.send(embed=embed)
-
-            # เก็บ ID ของข้อความที่ส่งล่าสุด และวันที่
-            last_message_id = message.id
-            last_date_sent = today_str
-
-        else:
-            # ส่งข้อความเดิมซ้ำโดยดึงจาก ID ที่เก็บไว้
-            try:
-                old_message = await channel.fetch_message(last_message_id)
-                if old_message.embeds:
-                    # ส่ง embed เดิมซ้ำ
-                    await channel.send(embed=old_message.embeds[0])
-                else:
-                    await channel.send(old_message.content)
-            except Exception as e:
-                print(f"ไม่สามารถดึงข้อความเก่าได้: {e}")
-    else:
-        # ถ้าวันนี้ไม่มีข้อความเทศกาล ก็รีเซ็ตตัวแปร
-        last_message_id = None
-        last_date_sent = None
-
-
-
-
 @bot.event
 async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
     update_group_status.start()
-    check_festival.start()
-
 
 server_on()
 
