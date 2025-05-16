@@ -23,7 +23,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
 intents.presences = True
-
+intents.message_content = True  # เพิ่มบรรทัดนี้
 bot = commands.Bot(command_prefix="×", intents=intents)
 
 
