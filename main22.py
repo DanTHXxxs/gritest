@@ -1,5 +1,4 @@
 import os
-import json
 import discord
 import asyncio
 import aiohttp
@@ -18,12 +17,6 @@ WEATHER_CHANNEL_ID = 1371471375361114182  # แชนแนลสำหรับ
 STATUS_CHANNEL_ID = 1371468773403660338  # แชนแนลสำหรับสถานะกลุ่ม
 GUILD_ID = 905530303467094027
 API_KEY = '56c594de7daca68b44c11aa5feb133d1'
-
-fggchannel_id = 1372933691894136864  # แก้ตาม Channel ของคุณ
-message_file = "status_message_id.json"
-statusx_message = None
-update_interval = 10  # วินาที
-
 
 intents = discord.Intents.default()
 intents.members = True
@@ -117,34 +110,6 @@ LOCATIONS = [
     {"name": "สตูล", "lat": 6.6238, "lon": 100.0668}
 ]
 
-
-
-important_days = {
-    "01-01": "วันขึ้นปีใหม่",
-    "14-02": "วันวาเลนไทน์",
-    "06-04": "วันจักรี",
-    "13-04": "วันสงกรานต์",
-    "14-04": "วันสงกรานต์",
-    "15-04": "วันสงกรานต์",
-    "01-05": "วันแรงงานแห่งชาติ",
-    "04-05": "วันฉัตรมงคล",
-    "11-05": "วันวิสาขบูชา",
-    "03-06": "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
-    "28-07": "วันเฉลิมพระชนมพรรษาพระบาทสมเด็จพระเจ้าอยู่หัว",
-    "12-08": "วันแม่แห่งชาติ",
-    "13-10": "วันคล้ายวันสวรรคตรัชกาลที่ 9",
-    "23-10": "วันปิยมหาราช",
-    "05-12": "วันพ่อแห่งชาติ / วันชาติ",
-    "10-12": "วันรัฐธรรมนูญ",
-    "31-12": "วันสิ้นปี"
-}
-
-
-
-
-
-
-
 thai_days = {
     'Monday': 'วันจันทร์',
     'Tuesday': 'วันอังคาร',
@@ -173,41 +138,11 @@ thai_months = {
 WEATHER_MESSAGE_ID = 1371491919401717770
 STATUS_MESSAGE_ID = 1371491918076448798
 
-
-
-    
-
-
-
-
 async def get_weather(location):
     async with aiohttp.ClientSession() as session:
         url = f"http://api.openweathermap.org/data/2.5/weather?lat={location['lat']}&lon={location['lon']}&appid={API_KEY}&units=metric&lang=th"
         async with session.get(url) as response:
-            data = awai@bot.event
-async def on_ready():
-    print(f"ล็อกอินแล้วเป็น {bot.user}")
-    update_weather.start()
-    update_group_status.start()
-    global statusx_message
-    channel = bot.get_channel(fggchannel_id)
-    
-    # โหลด message_id จากไฟล์
-    if os.path.exists(message_file):
-        with open(message_file, "r") as f:
-            data = json.load(f)
-            try:
-                statusx_message = await channel.fetch_message(data["message_id"])
-            except discord.NotFound:
-                statusx_message = None
-
-    update_status.start()
-
-    # ส่งข้อความเทศกาล ฤดู เมื่อบอทพร้อมใช้งาน
-    if channel:
-        await channel.send("เทศกาล ฤดู")
-    else:
-        print("ไม่พบ channel ที่กำหนด")t response.json()
+            data = await response.json()
             if response.status == 200:
                 temp = data['main']['temp']
                 desc = data['weather'][0]['description']
@@ -284,63 +219,12 @@ async def update_group_status():
     except discord.NotFound:
         msg = await status_channel.send(embed=embed)
         STATUS_MESSAGE_ID = msg.id
-        
-        
-def get_thai_season():
-    now = datetime.now()
-    day = now.day
-    month = now.month
-    if month == 3 or month == 4 or (month == 5 and day <= 14):
-        return "ฤดูร้อน🔥"
-    elif (month == 5 and day >= 15) or (6 <= month <= 10):
-        return "ฤดูฝน🌧️"
-    else:
-        return "ฤดูหนาว🥶"
 
-def get_today_event():
-    today = datetime.now().strftime("%d-%m")
-    return important_days.get(today, "วันปกติ☀️")
-
-def get_thai_datetime_string():
-    now = datetime.now()
-    day_name = thai_days[now.weekday()]
-    day = now.day
-    month_name = thai_months[now.month -1]
-    year = now.year + 543
-    time_str = now.strftime("%H:%M:%S")
-    return f"{day_name} ที่ {day} {month_name} พ.ศ. {year} เวลา {time_str}"
-
-
-@tasks.loop(seconds=update_interval)
-async def update_status():
-    global statusx_message
-
-    channel = bot.get_channel(fggchannel_id)
-    season = get_thai_season()
-    event = get_today_event()
-    now = datetime.now()
-    updated_time = get_thai_datetime_string()
-
-    embed = discord.Embed(
-        title="เทศกาล / ฤดูกาลในประเทศ 🇹🇭",
-        description=(
-            f"**เทศกาลวันนี้:** {event}\n"
-            f"**ฤดูกาลอยู่ช่วง:** {season}\n\n"
-            f"**〔⏰〕อัปเดตข้อมูลเมื่อ:** {updated_time}\n"
-            f"**〔🔄〕อัปเดตอัตโนมัติทุกๆ {update_interval} วินาที**"
-        ),
-        color=discord.Color.orange()
-    )
-
-    if statusx_message is None:
-        statusx_message = await channel.send(embed=embed)
-        # บันทึก message_id ลงไฟล์
-        with open(message_file, "w") as f:
-            json.dump({"message_id": statusx_message.id}, f)
-    else:
-        await statusx_message.edit(embed=embed)
-        
-
+@bot.event
+async def on_ready():
+    print(f"ล็อกอินแล้วเป็น {bot.user}")
+    update_weather.start()
+    update_group_status.start()
 
 server_on()
 
