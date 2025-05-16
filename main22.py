@@ -5,6 +5,7 @@ import aiohttp
 import pytz
 from discord.ext import commands, tasks
 from datetime import datetime
+import json
 
 
 from myserver import server_on
@@ -109,6 +110,37 @@ LOCATIONS = [
     {"name": "นราธิวาส", "lat": 6.4254, "lon": 101.8253},
     {"name": "สตูล", "lat": 6.6238, "lon": 100.0668}
 ]
+
+channel_id = 1372933691894136864  # แก้ตาม Channel ของคุณ
+message_file = "status_message_id.json"
+status_message = None
+update_interval = 10  # วินาที
+
+important_days = {
+    "01-01": "วันขึ้นปีใหม่",
+    "14-02": "วันวาเลนไทน์",
+    "06-04": "วันจักรี",
+    "13-04": "วันสงกรานต์",
+    "14-04": "วันสงกรานต์",
+    "15-04": "วันสงกรานต์",
+    "01-05": "วันแรงงานแห่งชาติ",
+    "04-05": "วันฉัตรมงคล",
+    "11-05": "วันวิสาขบูชา",
+    "03-06": "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
+    "28-07": "วันเฉลิมพระชนมพรรษาพระบาทสมเด็จพระเจ้าอยู่หัว",
+    "12-08": "วันแม่แห่งชาติ",
+    "13-10": "วันคล้ายวันสวรรคตรัชกาลที่ 9",
+    "23-10": "วันปิยมหาราช",
+    "05-12": "วันพ่อแห่งชาติ / วันชาติ",
+    "10-12": "วันรัฐธรรมนูญ",
+    "31-12": "วันสิ้นปี"
+}
+
+
+
+
+
+
 
 thai_days = {
     'Monday': 'วันจันทร์',
@@ -219,12 +251,82 @@ async def update_group_status():
     except discord.NotFound:
         msg = await status_channel.send(embed=embed)
         STATUS_MESSAGE_ID = msg.id
+        
+        
+        def get_thai_season():
+    now = datetime.now()
+    day = now.day
+    month = now.month
+    if month == 3 or month == 4 or (month == 5 and day <= 14):
+        return "ฤดูร้อน🔥"
+    elif (month == 5 and day >= 15) or (6 <= month <= 10):
+        return "ฤดูฝน🌧️"
+    else:
+        return "ฤดูหนาว🥶"
+
+def get_today_event():
+    today = datetime.now().strftime("%d-%m")
+    return important_days.get(today, "วันปกติ☀️")
+
+def get_thai_datetime_string():
+    now = datetime.now()
+    day_name = thai_days[now.weekday()]
+    day = now.day
+    month_name = thai_months[now.month -1]
+    year = now.year + 543
+    time_str = now.strftime("%H:%M:%S")
+    return f"{day_name} ที่ {day} {month_name} พ.ศ. {year} เวลา {time_str}"
+
+
+@tasks.loop(seconds=update_interval)
+async def update_status():
+    global status_message
+
+    channel = bot.get_channel(channel_id)
+    season = get_thai_season()
+    event = get_today_event()
+    now = datetime.now()
+    updated_time = get_thai_datetime_string()
+
+    embed = discord.Embed(
+        title="เทศกาล / ฤดูกาลในประเทศ 🇹🇭",
+        description=(
+            f"**เทศกาลวันนี้:** {event}\n"
+            f"**ฤดูกาลอยู่ช่วง:** {season}\n\n"
+            f"**〔⏰〕อัปเดตข้อมูลเมื่อ:** {updated_time}\n"
+            f"**〔🔄〕อัปเดตอัตโนมัติทุกๆ {update_interval} วินาที**"
+        ),
+        color=discord.Color.orange()
+    )
+
+    if status_message is None:
+        status_message = await channel.send(embed=embed)
+        # บันทึก message_id ลงไฟล์
+        with open(message_file, "w") as f:
+            json.dump({"message_id": status_message.id}, f)
+    else:
+        await status_message.edit(embed=embed)
+        
 
 @bot.event
 async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
     update_group_status.start()
+    global status_message
+    print(f"บอทพร้อมใช้งานแล้ว: {bot.user}")
+    channel = bot.get_channel(channel_id)
+
+    # โหลด message_id จากไฟล์
+    if os.path.exists(message_file):
+        with open(message_file, "r") as f:
+            data = json.load(f)
+            try:
+                status_message = await channel.fetch_message(data["message_id"])
+            except discord.NotFound:
+                status_message = None
+
+    update_status.start()
 
 server_on()
 
