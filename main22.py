@@ -15,7 +15,7 @@ TOKEN = os.environ.get("DISCORD_TOKEN")
 
 WEATHER_CHANNEL_ID = 1371471375361114182  # แชนแนลสำหรับอากาศ
 STATUS_CHANNEL_ID = 1371468773403660338  # แชนแนลสำหรับสถานะกลุ่ม
-FESTIVAL_CHANNEL_ID = 1372613788229963786
+
 GUILD_ID = 905530303467094027
 API_KEY = '56c594de7daca68b44c11aa5feb133d1'
 
@@ -139,12 +139,6 @@ thai_months = {
 
 WEATHER_MESSAGE_ID = 1371491919401717770
 STATUS_MESSAGE_ID = 1371491918076448798
-last_sent_date = None  # เก็บวันที่ที่ส่งข้อความล่าสุด
-
-MESSAGE_ID = 1372729632348045383  # Message ID ของข้อความที่มี Embed
-
-
-
 
 
 
@@ -232,35 +226,6 @@ async def update_group_status():
 
         
 
-festival_messages = {
-    "05-16": "โลกแตก",
-    "01-01": "สวัสดีปีใหม่! ขอให้ปีนี้เป็นปีที่ดีของทุกคน!",
-    "04-13": "สุขสันต์วันสงกรานต์ ขอให้ทุกคนมีความสุขมาก ๆ นะครับ!",
-    "08-12": "สุขสันต์วันแม่แห่งชาติ ขอให้คุณแม่ทุกท่านมีสุขภาพแข็งแรง!",
-    "12-05": "วันพ่อแห่งชาติ ขอให้คุณพ่อทั่วประเทศมีแต่ความสุข!",
-    "12-24": "สุขสันต์วันคริสต์มาสอีฟ! ขอให้คืนนี้อบอวลไปด้วยความสุขและความรัก!",
-    "12-25": "สุขสันต์วันคริสต์มาส! ขอให้คุณมีความสุขและอบอุ่นใจในวันแห่งความรักและการให้!",
-}
-
-@tasks.loop(seconds=10)  # ใช้ seconds เพื่อทดสอบ
-async def check_festival():
-    now = datetime.now(pytz.timezone('Asia/Bangkok'))
-    today_str = now.strftime("%m-%d")
-
-    if today_str in festival_messages:
-        channel = bot.get_channel(FESTIVAL_CHANNEL_ID)
-        if channel:
-            try:
-                msg = await channel.fetch_message(MESSAGE_ID)
-
-                if msg.embeds:
-                    await channel.send(content=msg.content, embed=msg.embeds[0])
-                else:
-                    await channel.send(msg.content)
-
-            except Exception as e:
-                print(f"Error fetching or sending message: {e}")
-
 
 
 
@@ -270,8 +235,7 @@ async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
     update_group_status.start()
-    check_festival.start()
-
+    
 server_on()
 
 bot.run(TOKEN)
