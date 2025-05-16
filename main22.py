@@ -134,7 +134,7 @@ thai_months = {
     'September': 'กันยายน',
     'October': 'ตุลาคม',
     'November': 'พฤศจิกายน',
-    'December': 'ธันวาคม'
+    'December': 'ธันวาคม.'
 }
 
 
