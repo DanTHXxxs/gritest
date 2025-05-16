@@ -173,6 +173,30 @@ thai_months = {
 WEATHER_MESSAGE_ID = 1371491919401717770
 STATUS_MESSAGE_ID = 1371491918076448798
 
+
+@bot.event
+async def on_ready():
+    print(f"ล็อกอินแล้วเป็น {bot.user}")
+    update_weather.start()
+    update_group_status.start()
+    global statusx_message
+    channel = bot.get_channel(fggchannel_id)
+    
+    # โหลด message_id จากไฟล์
+    if os.path.exists(message_file):
+        with open(message_file, "r") as f:
+            data = json.load(f)
+            try:
+                statusx_message = await channel.fetch_message(data["message_id"])
+            except discord.NotFound:
+                statusx_message = None
+
+    update_status.start()
+    
+
+
+
+
 async def get_weather(location):
     async with aiohttp.ClientSession() as session:
         url = f"http://api.openweathermap.org/data/2.5/weather?lat={location['lat']}&lon={location['lon']}&appid={API_KEY}&units=metric&lang=th"
@@ -311,25 +335,6 @@ async def update_status():
         await statusx_message.edit(embed=embed)
         
 
-@bot.event
-async def on_ready():
-    print(f"ล็อกอินแล้วเป็น {bot.user}")
-    update_weather.start()
-    update_group_status.start()
-    global statusx_message
-    print(f"บอทพร้อมใช้งานแล้ว: {bot.user}")
-    channel = bot.get_channel(fggchannel_id)
-
-    # โหลด message_id จากไฟล์
-    if os.path.exists(message_file):
-        with open(message_file, "r") as f:
-            data = json.load(f)
-            try:
-                statusx_message = await channel.fetch_message(data["message_id"])
-            except discord.NotFound:
-                statusx_message = None
-
-    update_status.start()
 
 server_on()
 
