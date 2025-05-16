@@ -174,7 +174,17 @@ WEATHER_MESSAGE_ID = 1371491919401717770
 STATUS_MESSAGE_ID = 1371491918076448798
 
 
-@bot.event
+
+    
+
+
+
+
+async def get_weather(location):
+    async with aiohttp.ClientSession() as session:
+        url = f"http://api.openweathermap.org/data/2.5/weather?lat={location['lat']}&lon={location['lon']}&appid={API_KEY}&units=metric&lang=th"
+        async with session.get(url) as response:
+            data = awai@bot.event
 async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
@@ -192,16 +202,12 @@ async def on_ready():
                 statusx_message = None
 
     update_status.start()
-    
 
-
-
-
-async def get_weather(location):
-    async with aiohttp.ClientSession() as session:
-        url = f"http://api.openweathermap.org/data/2.5/weather?lat={location['lat']}&lon={location['lon']}&appid={API_KEY}&units=metric&lang=th"
-        async with session.get(url) as response:
-            data = await response.json()
+    # ส่งข้อความเทศกาล ฤดู เมื่อบอทพร้อมใช้งาน
+    if channel:
+        await channel.send("เทศกาล ฤดู")
+    else:
+        print("ไม่พบ channel ที่กำหนด")t response.json()
             if response.status == 200:
                 temp = data['main']['temp']
                 desc = data['weather'][0]['description']
