@@ -137,6 +137,7 @@ thai_months = {
     'December': 'ธันวาคม'
 }
 
+print("==== รันจาก main5.py แล้วจ้า ====")
 
 FESTIVAL_CHANNEL_ID = 1372737530746900591  # แก้เป็น ID ช่องของคุณ
 
