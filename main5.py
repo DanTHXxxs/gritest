@@ -3,31 +3,11 @@ import json
 import discord
 from discord.ext import commands, tasks
 from datetime import datetime
-
 from discord.ui import View, Button
-
-
-
-from myserver import server_on
+from myserver import server_on  # ถ้ามีระบบนี้
 
 # โหลด TOKEN จาก Environment Variable
 TOKEN = os.environ.get("DISCORD_TOKEN")
-
-
-
-intents = discord.Intents.default()
-intents.reactions = True
-intents.guilds = True
-intents.members = True
-intents.messages = True
-intents.message_content = True
-
-
-
-
-
-
-
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -36,7 +16,6 @@ channel_id = 1372933691894136864
 chanrole_id = 982259566664376401
 changetfree_id = 987661935757639680
 message_file = "status_message_id.json"
-role_data_file = "role_message_data.json"
 
 status_message = None
 update_interval = 10
@@ -58,7 +37,7 @@ def get_thai_season():
     now = datetime.now()
     day = now.day
     month = now.month
-    if month == 3 or month == 4 or (month == 5 and day <= 14):
+    if month in [3, 4] or (month == 5 and day <= 14):
         return "ฤดูร้อน🔥"
     elif (month == 5 and day >= 15) or (6 <= month <= 10):
         return "ฤดูฝน🌧️"
@@ -73,11 +52,10 @@ def get_thai_datetime_string():
     now = datetime.now()
     day_name = thai_days[now.weekday()]
     day = now.day
-    month_name = thai_months[now.month -1]
+    month_name = thai_months[now.month - 1]
     year = now.year + 543
     time_str = now.strftime("%H:%M:%S")
     return f"{day_name} ที่ {day} {month_name} พ.ศ. {year} เวลา {time_str}"
-
 
 @bot.event
 async def on_ready():
@@ -85,7 +63,6 @@ async def on_ready():
     print(f"บอทพร้อมใช้งานแล้ว: {bot.user}")
     channel = bot.get_channel(channel_id)
 
-    # โหลด message_id ของสถานะ
     if os.path.exists(message_file):
         with open(message_file, "r") as f:
             data = json.load(f)
@@ -96,11 +73,9 @@ async def on_ready():
 
     update_status.start()
 
-
 @tasks.loop(seconds=update_interval)
 async def update_status():
     global status_message
-
     channel = bot.get_channel(channel_id)
     season = get_thai_season()
     event = get_today_event()
@@ -124,8 +99,7 @@ async def update_status():
     else:
         await status_message.edit(embed=embed)
 
-# ==== ระบบแจกยศด้วยอีโมจิ ====
-
+# ปุ่มกดรับยศ
 class RoleButtonView(View):
     def __init__(self, role: discord.Role):
         super().__init__(timeout=None)
@@ -144,19 +118,16 @@ class RoleButtonView(View):
 @bot.command()
 async def setrolebutton(ctx, role: discord.Role):
     channel = bot.get_channel(chanrole_id)
-
     embed = discord.Embed(
         title="ยืนยันตัวตน",
         description=f"กดอีโมจิ ✅ เพื่อรับยศ **{role.name}**",
         color=discord.Color.green()
     )
-
     view = RoleButtonView(role)
     await channel.send(embed=embed, view=view)
     await ctx.send(f"สร้างปุ่มแจกยศ {role.name} แล้ว")
-                
-                
-# แมปอีโมจิกับ Role ID
+
+# อีโมจิกับ Role Map
 EMOJI_ROLE_MAP = {
     "🧑": 988733621051457576,
     "👩": 988733716551598150,
@@ -171,8 +142,7 @@ EMOJI_ROLE_MAP = {
     "🍍": 1015983410793152564,
 }
 
-role_message_id = 1373307799869722644  # ตัวแปรเก็บ ID ของข้อความที่ใช้สำหรับรับยศ
-
+role_message_id = 1373307799869722644
 
 @bot.command()
 async def sendroles(ctx):
@@ -195,7 +165,7 @@ async def sendroles(ctx):
 🍍 | <@&1015983410793152564>"""
 
     msg = await ctx.send(content)
-    role_message_id = msg.id  # เก็บ ID ไว้ให้ on_raw_reaction_add ใช้
+    role_message_id = msg.id
 
     for emoji in EMOJI_ROLE_MAP.keys():
         await msg.add_reaction(emoji)
@@ -220,7 +190,7 @@ async def on_raw_reaction_add(payload):
     if role and member:
         await member.add_roles(role)
         print(f"Added role {role.name} to {member.name}")
-        
+
 @bot.event
 async def on_raw_reaction_remove(payload):
     global role_message_id
@@ -241,7 +211,9 @@ async def on_raw_reaction_remove(payload):
     if role and member:
         await member.remove_roles(role)
         print(f"Removed role {role.name} from {member.name}")
-               
-                      server_on()
 
-bot.run(TOKEN)
+# เริ่มรันบอท
+if TOKEN:
+    bot.run(TOKEN)
+else:
+    print("กรุณาตั้งค่าตัวแปร DISCORD_TOKEN ก่อนเรียกใช้งาน")
