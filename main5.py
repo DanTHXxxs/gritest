@@ -34,11 +34,13 @@ thai_days = ["วันจันทร์", "วันอังคาร", "ว�
 thai_months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
                "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]
 
+
+
 def get_thai_season():
     now = datetime.now()
     day = now.day
     month = now.month
-    if month in [3, 4] or (month == 5 and day <= 14):
+    if month in [3, 4] or (month == 5 and day < 15):
         return "ฤดูร้อน🔥"
     elif (month == 5 and day >= 15) or (6 <= month <= 10):
         return "ฤดูฝน🌧️"
@@ -50,14 +52,13 @@ def get_today_event():
     return important_days.get(today, "วันปกติ☀️")
 
 def get_thai_datetime_string():
-    now = datetime.now()
+    now = datetime.now(pytz.timezone("Asia/Bangkok"))
     day_name = thai_days[now.weekday()]
     day = now.day
     month_name = thai_months[now.month - 1]
     year = now.year + 543
     time_str = now.strftime("%H:%M:%S")
     return f"{day_name} ที่ {day} {month_name} พ.ศ. {year} เวลา {time_str}"
-
 
 
 @bot.event
@@ -82,23 +83,16 @@ async def on_ready():
 
 
 
-
-
-
 @tasks.loop(minutes=5)
 async def update_status():
     global status_message
     channel = bot.get_channel(channel_id)
     season = get_thai_season()
     event = get_today_event()
-    now = datetime.now(pytz.timezone("Asia/Bangkok"))
-    day_th = thai_days[now.strftime('%A')]
-    month_th = thai_months[now.strftime('%B')]
-    year_th = now.year + 543
-    update_time = f"{day_th} ที่ {now.day} {month_th} พ.ศ. {year_th} เวลา {now.strftime('%H:%M:%S')}"
+    updated_time = get_thai_datetime_string()
 
     embed = discord.Embed(
-        title="เทศกาล / ฤดูกาลในประเทศ 🇹🇭",
+        title="เทศกาล / ฤดูกาลในประเทศไทย 🇹🇭",
         description=(
             f"**เทศกาลวันนี้:** {event}\n"
             f"**ฤดูกาลอยู่ช่วง:** {season}\n\n"
@@ -109,20 +103,23 @@ async def update_status():
     )
 
     if status_message is None:
-        print("[DEBUG] กำลังส่งข้อความใหม่...")
         status_message = await channel.send(embed=embed)
         with open(message_file, "w") as f:
             json.dump({"message_id": status_message.id}, f)
     else:
-        print("[DEBUG] กำลังแก้ไขข้อความเดิม...")
         try:
             await status_message.edit(embed=embed)
         except discord.NotFound:
-            print("[ERROR] ข้อความไม่พบ อาจถูกลบ กำลังสร้างใหม่...")
             status_message = await channel.send(embed=embed)
             with open(message_file, "w") as f:
                 json.dump({"message_id": status_message.id}, f)
-# ปุ่มกดรับยศ
+
+
+
+
+
+
+
 class RoleButtonView(View):
     def __init__(self, role: discord.Role):
         super().__init__(timeout=None)
