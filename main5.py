@@ -17,7 +17,7 @@ chanrole_id = 982259566664376401
 changetfree_id = 987661935757639680
 message_file = "status_message_id.json"
 
-status_message = None
+status_message = 1373323014145314977
 update_interval = 10
 
 important_days = {
