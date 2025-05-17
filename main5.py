@@ -1,6 +1,7 @@
 import os
 import json
 import discord
+import pytz
 from discord.ext import commands, tasks
 from datetime import datetime
 from discord.ui import View, Button
@@ -90,9 +91,11 @@ async def update_status():
     channel = bot.get_channel(channel_id)
     season = get_thai_season()
     event = get_today_event()
-    updated_time = get_thai_datetime_string()
-
-    print(f"[DEBUG] อัปเดต: {event}, {season}, {updated_time}")
+    now = datetime.now(pytz.timezone("Asia/Bangkok"))
+    day_th = thai_days[now.strftime('%A')]
+    month_th = thai_months[now.strftime('%B')]
+    year_th = now.year + 543
+    update_time = f"{day_th} ที่ {now.day} {month_th} พ.ศ. {year_th} เวลา {now.strftime('%H:%M:%S')}"
 
     embed = discord.Embed(
         title="เทศกาล / ฤดูกาลในประเทศ 🇹🇭",
