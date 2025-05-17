@@ -212,6 +212,9 @@ async def on_raw_reaction_remove(payload):
         await member.remove_roles(role)
         print(f"Removed role {role.name} from {member.name}")
 
+
+server_on()
+
 # เริ่มรันบอท
 if TOKEN:
     bot.run(TOKEN)
