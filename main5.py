@@ -73,7 +73,7 @@ async def on_ready():
 
     update_status.start()
 
-@tasks.loop(seconds=update_interval)
+@tasks.loop(minutes=5)
 async def update_status():
     global status_message
     channel = bot.get_channel(channel_id)
@@ -87,7 +87,7 @@ async def update_status():
             f"**เทศกาลวันนี้:** {event}\n"
             f"**ฤดูกาลอยู่ช่วง:** {season}\n\n"
             f"**〔⏰〕อัปเดตข้อมูลเมื่อ:** {updated_time}\n"
-            f"**〔🔄〕อัปเดตอัตโนมัติทุกๆ {update_interval} วินาที**"
+            f"**〔🔄〕อัปเดตอัตโนมัติทุกๆ 5 นาที**"
         ),
         color=discord.Color.orange()
     )
