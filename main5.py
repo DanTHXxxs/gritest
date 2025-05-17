@@ -200,7 +200,6 @@ async def sendroles(ctx):
     for emoji in EMOJI_ROLE_MAP.keys():
         await msg.add_reaction(emoji)
 
-
 @bot.event
 async def on_raw_reaction_add(payload):
     global role_message_id
@@ -221,7 +220,7 @@ async def on_raw_reaction_add(payload):
     if role and member:
         await member.add_roles(role)
         print(f"Added role {role.name} to {member.name}")
-
+        
 @bot.event
 async def on_raw_reaction_remove(payload):
     global role_message_id
