@@ -138,8 +138,8 @@ class TypeDropdown(discord.ui.Select):
     def __init__(self, user):
         self.user = user
         options = [
-            discord.SelectOption(label="มังงะ | Manga", description="เลือกจาก BbMangaO.json"),
-            discord.SelectOption(label="ไลน์โนเวล | Light Novel", description="เลือกจาก MmLineNovelO.json"),
+            discord.SelectOption(label="มังงะ | Manga"),
+            discord.SelectOption(label="ไลน์โนเวล | Light Novel"),
         ]
         super().__init__(placeholder="เลือกประเภท...", options=options)
 
