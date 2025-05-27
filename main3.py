@@ -39,7 +39,7 @@ class ReaderView(discord.ui.View):
         embed.set_image(url=get_page_image_url(self.base_url, self.chapter, self.page))
         await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="⬅️ ก่อนหน้า", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="⬅️ กลับไปหน้าที่แล้ว", style=discord.ButtonStyle.primary)
     async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user != self.user:
             return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
@@ -47,7 +47,8 @@ class ReaderView(discord.ui.View):
             self.page -= 1
         await self.update_embed(interaction)
 
-    @discord.ui.button(label="➡️ ถัดไป", style=discord.ButtonStyle.primary)
+    
+    @discord.ui.button(label="➡️ หน้าถัดไป", style=discord.ButtonStyle.primary)
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user != self.user:
             return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
@@ -55,7 +56,16 @@ class ReaderView(discord.ui.View):
             self.page += 1
         await self.update_embed(interaction)
 
-    @discord.ui.button(label="ตอนต่อไป", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="⏪ กลับไปตอนที่แล้ว", style=discord.ButtonStyle.success)
+    async def prev_chapter(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user != self.user:
+            return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
+        if self.chapter > 1:
+            self.chapter -= 1
+            self.page = 1
+        await self.update_embed(interaction)
+
+    @discord.ui.button(label="⏩ ตอนต่อไป", style=discord.ButtonStyle.success)
     async def next_chapter(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user != self.user:
             return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
@@ -64,6 +74,11 @@ class ReaderView(discord.ui.View):
             self.page = 1
         await self.update_embed(interaction)
 
+@discord.ui.button(label="🔄 รีหน้า", style=discord.ButtonStyle.secondary)
+    async def reload(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user != self.user:
+            return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
+        await self.update_embed(interaction)
 
 class ChapterSelect(discord.ui.Select):
     def __init__(self, user, title, base_url, total_chapters):
