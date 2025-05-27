@@ -112,10 +112,12 @@ class RoleButtonView(View):
 @bot.command()
 async def setrolebutton(ctx, role: discord.Role):
     channel = bot.get_channel(chanrole_id)
-    async for msg in channel.history(limit=50):
-        if msg.author == bot.user and msg.embeds and msg.embeds[0].title == "ยืนยันตัวตน":
-            await msg.delete()
-            break
+
+    # ลบข้อความเก่าที่เป็น embed "ยืนยันตัวตน" ทั้งหมดก่อน
+    async for msg in channel.history(limit=100):
+        if msg.author == bot.user and msg.embeds:
+            if msg.embeds[0].title == "ยืนยันตัวตน":
+                await msg.delete()
 
     embed = discord.Embed(
         title="ยืนยันตัวตน",
@@ -125,6 +127,7 @@ async def setrolebutton(ctx, role: discord.Role):
     view = RoleButtonView(role)
     await channel.send(embed=embed, view=view)
     await ctx.send(f"สร้างปุ่มแจกยศ {role.name} แล้ว")
+
 
 EMOJI_ROLE_MAP = {
     "🧑": 988733621051457576,
