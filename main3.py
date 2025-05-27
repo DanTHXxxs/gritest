@@ -3,9 +3,9 @@ from discord.ext import commands
 import json
 import os
 
-from myserver import server_on  # สำหรับ Render ให้เพิ่ม myserver.py ด้วย
+from myserver import server_on  # Render ใช้ไฟล์นี้เปิด server กัน sleep
 
-TOKEN = os.environ.get("DISCORD_TOKEN")
+TOKEN = os.environ.get("DISCORD_TOKEN")  # เพิ่ม token ใน Secrets ของ Render
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -16,7 +16,7 @@ def load_json(file):
     with open(file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-# โหลดไฟล์ JSON จากโฟลเดอร์
+# โหลดข้อมูลมังงะและไลท์โนเวล
 manga_data = load_json("CartooTonMang/BbMangaO.json")
 ln_data = load_json("CartooTonMang/MmLineNovelO.json")
 
@@ -37,11 +37,9 @@ class ReaderView(discord.ui.View):
         self.total_chapters = total_chapters
 
     async def update_embed(self, interaction):
-    image_url = get_page_image_url(self.base_url, self.chapter, self.page)
-    print(f"Loading image URL: {image_url}")
-    embed = discord.Embed(title=f"{self.title} - ตอนที่ {self.chapter} หน้า {self.page}")
-    embed.set_image(url=image_url)
-    await interaction.response.edit_message(embed=embed, view=self)
+        embed = discord.Embed(title=f"{self.title} - ตอนที่ {self.chapter} หน้า {self.page}")
+        embed.set_image(url=get_page_image_url(self.base_url, self.chapter, self.page))
+        await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(label="⬅️ ก่อนหน้า", style=discord.ButtonStyle.primary)
     async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -78,8 +76,7 @@ class ChapterSelect(discord.ui.Select):
         options = [discord.SelectOption(label=f"ตอนที่ {i}", value=str(i)) for i in range(1, total_chapters + 1)]
         super().__init__(placeholder="เลือกตอน...", options=options)
 
-async def callback(self, interaction: discord.Interaction):
-    try:
+    async def callback(self, interaction: discord.Interaction):
         chapter = int(self.values[0])
         await interaction.response.send_message(
             f"กำลังโหลด {self.title} ตอนที่ {chapter}...",
@@ -87,15 +84,6 @@ async def callback(self, interaction: discord.Interaction):
                             total_chapters=self.total_chapters, chapter=chapter, total_pages=20),
             ephemeral=True
         )
-    except Exception as e:
-        await interaction.response.send_message(f"เกิดข้อผิดพลาด: {e}", ephemeral=True)
-
-
-
-
-
-
-
 
 
 class TitleDropdown(discord.ui.Select):
@@ -107,11 +95,26 @@ class TitleDropdown(discord.ui.Select):
         super().__init__(placeholder=f"เลือกเรื่อง {label}...", options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        title = self.values[0]
-        info = self.data[title]
-        view = discord.ui.View(timeout=None)
-        view.add_item(ChapterSelect(user=self.user, title=title, base_url=info['link'], total_chapters=info['chapters']))
-        await interaction.response.send_message(f"เลือกตอนของ **{title}**:", view=view, ephemeral=True)
+        try:
+            title = self.values[0]
+            info = self.data[title]
+            view = discord.ui.View(timeout=None)
+            view.add_item(ChapterSelect(
+                user=self.user,
+                title=title,
+                base_url=info['link'],
+                total_chapters=info['chapters']
+            ))
+            await interaction.response.send_message(
+                f"เลือกตอนของ **{title}**:",
+                view=view,
+                ephemeral=True
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"เกิดข้อผิดพลาด: {str(e)}",
+                ephemeral=True
+            )
 
 
 class TypeDropdown(discord.ui.Select):
@@ -143,5 +146,6 @@ async def test(ctx):
     await ctx.send("เลือกประเภทที่คุณต้องการ:", view=DropdownStart(user=ctx.author))
 
 
+# เปิด server กัน sleep
 server_on()
 bot.run(TOKEN)
