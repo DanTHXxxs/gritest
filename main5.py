@@ -1,5 +1,4 @@
 import os
-import json
 import discord
 import pytz
 from discord.ext import commands, tasks
@@ -15,10 +14,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 channel_id = 1372933691894136864
 chanrole_id = 982259566664376401
 changetfree_id = 987661935757639680
-message_file = "status_message_id.json"
 
 status_message = None
-update_interval = 10
 
 important_days = {
     "01-01": "วันขึ้นปีใหม่", "14-02": "วันวาเลนไทน์", "06-04": "วันจักรี",
@@ -63,23 +60,15 @@ async def on_ready():
     print(f"บอทพร้อมใช้งานแล้ว: {bot.user}")
     channel = bot.get_channel(channel_id)
 
-    if os.path.exists(message_file):
-        with open(message_file, "r") as f:
-            data = json.load(f)
-            try:
-                status_message = await channel.fetch_message(data["message_id"])
-            except discord.NotFound:
-                print("ไม่พบข้อความเก่า กำลังสร้างข้อความใหม่...")
-                status_message = None
-    else:
-        status_message = None
+    # ลบข้อความของบอททั้งหมดในช่อง
+    async for msg in channel.history(limit=100):
+        if msg.author == bot.user:
+            await msg.delete()
 
+    status_message = await channel.send(embed=generate_status_embed())
     update_status.start()
 
-@tasks.loop(minutes=5)
-async def update_status():
-    global status_message
-    channel = bot.get_channel(channel_id)
+def generate_status_embed():
     season = get_thai_season()
     event = get_today_event()
     updated_time = get_thai_datetime_string()
@@ -94,23 +83,16 @@ async def update_status():
         ),
         color=discord.Color.orange()
     )
+    return embed
 
-    if status_message is None:
-        status_message = await channel.send(embed=embed)
-        with open(message_file, "w") as f:
-            json.dump({"message_id": status_message.id}, f)
-    else:
+@tasks.loop(minutes=5)
+async def update_status():
+    global status_message
+    if status_message:
         try:
-            await status_message.edit(embed=embed)
+            await status_message.edit(embed=generate_status_embed())
         except discord.NotFound:
-            try:
-                old_msg = await channel.fetch_message(status_message.id)
-                await old_msg.delete()
-            except:
-                pass
-            status_message = await channel.send(embed=embed)
-            with open(message_file, "w") as f:
-                json.dump({"message_id": status_message.id}, f)
+            status_message = await bot.get_channel(channel_id).send(embed=generate_status_embed())
 
 class RoleButtonView(View):
     def __init__(self, role: discord.Role):
@@ -130,7 +112,6 @@ class RoleButtonView(View):
 @bot.command()
 async def setrolebutton(ctx, role: discord.Role):
     channel = bot.get_channel(chanrole_id)
-    
     async for msg in channel.history(limit=50):
         if msg.author == bot.user and msg.embeds and msg.embeds[0].title == "ยืนยันตัวตน":
             await msg.delete()
@@ -145,7 +126,6 @@ async def setrolebutton(ctx, role: discord.Role):
     await channel.send(embed=embed, view=view)
     await ctx.send(f"สร้างปุ่มแจกยศ {role.name} แล้ว")
 
-# อีโมจิกับ Role Map
 EMOJI_ROLE_MAP = {
     "🧑": 988733621051457576,
     "👩": 988733716551598150,
@@ -165,7 +145,6 @@ role_message_id = 1373307799869722644
 @bot.command()
 async def sendroles(ctx):
     global role_message_id
-
     content = """**รับบทบาท**
 🧑 | <@&988733621051457576> 
 👩 | <@&988733716551598150> 
