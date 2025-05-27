@@ -119,7 +119,7 @@ async def setrolebutton(ctx, role: discord.Role):
 
     embed = discord.Embed(
         title="ยืนยันตัวตน",
-        description=f"กดอีโมจิ ✅ เพื่อรับยศ **{role.name}**",
+        description=f"กดปุ่ม ✅ เพื่อรับยศ **{role.name}**",
         color=discord.Color.green()
     )
     view = RoleButtonView(role)
