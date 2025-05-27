@@ -47,7 +47,6 @@ class ReaderView(discord.ui.View):
             self.page -= 1
         await self.update_embed(interaction)
 
-    
     @discord.ui.button(label="➡️ หน้าถัดไป", style=discord.ButtonStyle.primary)
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user != self.user:
@@ -74,7 +73,7 @@ class ReaderView(discord.ui.View):
             self.page = 1
         await self.update_embed(interaction)
 
-@discord.ui.button(label="🔄 รีหน้า", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="🔄 รีหน้า", style=discord.ButtonStyle.secondary)
     async def reload(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user != self.user:
             return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
