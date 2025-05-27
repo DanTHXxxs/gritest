@@ -37,9 +37,11 @@ class ReaderView(discord.ui.View):
         self.total_chapters = total_chapters
 
     async def update_embed(self, interaction):
-        embed = discord.Embed(title=f"{self.title} - ตอนที่ {self.chapter} หน้า {self.page}")
-        embed.set_image(url=get_page_image_url(self.base_url, self.chapter, self.page))
-        await interaction.response.edit_message(embed=embed, view=self)
+    image_url = get_page_image_url(self.base_url, self.chapter, self.page)
+    print(f"Loading image URL: {image_url}")
+    embed = discord.Embed(title=f"{self.title} - ตอนที่ {self.chapter} หน้า {self.page}")
+    embed.set_image(url=image_url)
+    await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(label="⬅️ ก่อนหน้า", style=discord.ButtonStyle.primary)
     async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -76,7 +78,8 @@ class ChapterSelect(discord.ui.Select):
         options = [discord.SelectOption(label=f"ตอนที่ {i}", value=str(i)) for i in range(1, total_chapters + 1)]
         super().__init__(placeholder="เลือกตอน...", options=options)
 
-    async def callback(self, interaction: discord.Interaction):
+async def callback(self, interaction: discord.Interaction):
+    try:
         chapter = int(self.values[0])
         await interaction.response.send_message(
             f"กำลังโหลด {self.title} ตอนที่ {chapter}...",
@@ -84,6 +87,15 @@ class ChapterSelect(discord.ui.Select):
                             total_chapters=self.total_chapters, chapter=chapter, total_pages=20),
             ephemeral=True
         )
+    except Exception as e:
+        await interaction.response.send_message(f"เกิดข้อผิดพลาด: {e}", ephemeral=True)
+
+
+
+
+
+
+
 
 
 class TitleDropdown(discord.ui.Select):
