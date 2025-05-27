@@ -17,8 +17,8 @@ def load_json(file):
         return json.load(f)
 
 # โหลดไฟล์ JSON จากโฟลเดอร์
-manga_data = load_json("./CartooTonMang/BbMangaO.json")
-ln_data = load_json("./CartooTonMang/MmLineNovelO.json")
+manga_data = load_json("gritest/CartooTonMang/BbMangaO.json")
+ln_data = load_json("gritest/CartooTonMang/MmLineNovelO.json")
 
 
 def get_page_image_url(base_url: str, chapter: int, page: int):
