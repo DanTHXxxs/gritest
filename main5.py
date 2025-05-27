@@ -83,7 +83,31 @@ async def on_ready():
 
 
 
-@tasks.loop(minutes=5)
+
+
+
+
+
+
+
+class RoleButtonView(View):
+    def __init__(self, role: discord.Role):
+        super().__init__(timeout=None)
+        self.role = role
+
+    @discord.ui.button(label="✅", style=discord.ButtonStyle.green, custom_id="give_role")
+    async def give_role(self, interaction: discord.Interaction, button: Button):
+        member = interaction.user
+        if self.role in member.roles:
+            await member.remove_roles(self.role)
+            await interaction.response.send_message(f"ลบยศ {self.role.name} ออกเรียบร้อย", ephemeral=True)
+        else:
+            await member.add_roles(self.role)
+            await interaction.response.send_message(f"ให้ยศ {self.role.name} เรียบร้อย", ephemeral=True)
+
+@bot.command()
+async def setrolebutton(ctx, role: discord.Role):
+    channel = bot.get_chan@tasks.loop(minutes=5)
 async def update_status():
     global status_message
     channel = bot.get_channel(channel_id)
@@ -110,34 +134,22 @@ async def update_status():
         try:
             await status_message.edit(embed=embed)
         except discord.NotFound:
+            # ลบข้อความเก่า (ถ้ามี ID ในไฟล์แต่ไม่เจอใน Discord)
+            try:
+                old_msg = await channel.fetch_message(status_message.id)
+                await old_msg.delete()
+            except:
+                pass
             status_message = await channel.send(embed=embed)
             with open(message_file, "w") as f:
-                json.dump({"message_id": status_message.id}, f)
+                json.dump({"message_id": status_message.id}, f)nel(chanrole_id)
 
+    # ลบข้อความล่าสุดของบอทในช่องนี้ (ถ้ามี)
+    async for msg in channel.history(limit=50):
+        if msg.author == bot.user and msg.embeds and msg.embeds[0].title == "ยืนยันตัวตน":
+            await msg.delete()
+            break
 
-
-
-
-
-
-class RoleButtonView(View):
-    def __init__(self, role: discord.Role):
-        super().__init__(timeout=None)
-        self.role = role
-
-    @discord.ui.button(label="✅", style=discord.ButtonStyle.green, custom_id="give_role")
-    async def give_role(self, interaction: discord.Interaction, button: Button):
-        member = interaction.user
-        if self.role in member.roles:
-            await member.remove_roles(self.role)
-            await interaction.response.send_message(f"ลบยศ {self.role.name} ออกเรียบร้อย", ephemeral=True)
-        else:
-            await member.add_roles(self.role)
-            await interaction.response.send_message(f"ให้ยศ {self.role.name} เรียบร้อย", ephemeral=True)
-
-@bot.command()
-async def setrolebutton(ctx, role: discord.Role):
-    channel = bot.get_channel(chanrole_id)
     embed = discord.Embed(
         title="ยืนยันตัวตน",
         description=f"กดอีโมจิ ✅ เพื่อรับยศ **{role.name}**",
