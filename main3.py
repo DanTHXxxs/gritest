@@ -119,12 +119,13 @@ class DropdownStart(discord.ui.View):
         super().__init__()
         self.add_item(TypeDropdown(user=user))
 
+    @bot.command()
+async def test(ctx):
     channel = bot.get_channel(1375079461476761692)
     if channel:
         await channel.send("เลือกประเภทที่คุณต้องการ:", view=DropdownView(user=ctx.author))
     else:
         await ctx.send("ไม่พบช่องเป้าหมายครับ")
-
 
 server_on()
 
