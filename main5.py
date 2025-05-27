@@ -7,7 +7,6 @@ from datetime import datetime
 from discord.ui import View, Button
 from myserver import server_on  # ถ้ามีระบบนี้
 
-# โหลด TOKEN จาก Environment Variable
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
 intents = discord.Intents.all()
@@ -18,7 +17,7 @@ chanrole_id = 982259566664376401
 changetfree_id = 987661935757639680
 message_file = "status_message_id.json"
 
-status_message = 1373323014145314977
+status_message = None
 update_interval = 10
 
 important_days = {
@@ -33,8 +32,6 @@ important_days = {
 thai_days = ["วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์", "วันอาทิตย์"]
 thai_months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
                "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]
-
-
 
 def get_thai_season():
     now = datetime.now()
@@ -60,7 +57,6 @@ def get_thai_datetime_string():
     time_str = now.strftime("%H:%M:%S")
     return f"{day_name} ที่ {day} {month_name} พ.ศ. {year} เวลา {time_str}"
 
-
 @bot.event
 async def on_ready():
     global status_message
@@ -80,34 +76,7 @@ async def on_ready():
 
     update_status.start()
 
-
-
-
-
-
-
-
-
-
-
-class RoleButtonView(View):
-    def __init__(self, role: discord.Role):
-        super().__init__(timeout=None)
-        self.role = role
-
-    @discord.ui.button(label="✅", style=discord.ButtonStyle.green, custom_id="give_role")
-    async def give_role(self, interaction: discord.Interaction, button: Button):
-        member = interaction.user
-        if self.role in member.roles:
-            await member.remove_roles(self.role)
-            await interaction.response.send_message(f"ลบยศ {self.role.name} ออกเรียบร้อย", ephemeral=True)
-        else:
-            await member.add_roles(self.role)
-            await interaction.response.send_message(f"ให้ยศ {self.role.name} เรียบร้อย", ephemeral=True)
-
-@bot.command()
-async def setrolebutton(ctx, role: discord.Role):
-    channel = bot.get_chan@tasks.loop(minutes=5)
+@tasks.loop(minutes=5)
 async def update_status():
     global status_message
     channel = bot.get_channel(channel_id)
@@ -134,7 +103,6 @@ async def update_status():
         try:
             await status_message.edit(embed=embed)
         except discord.NotFound:
-            # ลบข้อความเก่า (ถ้ามี ID ในไฟล์แต่ไม่เจอใน Discord)
             try:
                 old_msg = await channel.fetch_message(status_message.id)
                 await old_msg.delete()
@@ -142,9 +110,27 @@ async def update_status():
                 pass
             status_message = await channel.send(embed=embed)
             with open(message_file, "w") as f:
-                json.dump({"message_id": status_message.id}, f)nel(chanrole_id)
+                json.dump({"message_id": status_message.id}, f)
 
-    # ลบข้อความล่าสุดของบอทในช่องนี้ (ถ้ามี)
+class RoleButtonView(View):
+    def __init__(self, role: discord.Role):
+        super().__init__(timeout=None)
+        self.role = role
+
+    @discord.ui.button(label="✅", style=discord.ButtonStyle.green, custom_id="give_role")
+    async def give_role(self, interaction: discord.Interaction, button: Button):
+        member = interaction.user
+        if self.role in member.roles:
+            await member.remove_roles(self.role)
+            await interaction.response.send_message(f"ลบยศ {self.role.name} ออกเรียบร้อย", ephemeral=True)
+        else:
+            await member.add_roles(self.role)
+            await interaction.response.send_message(f"ให้ยศ {self.role.name} เรียบร้อย", ephemeral=True)
+
+@bot.command()
+async def setrolebutton(ctx, role: discord.Role):
+    channel = bot.get_channel(chanrole_id)
+    
     async for msg in channel.history(limit=50):
         if msg.author == bot.user and msg.embeds and msg.embeds[0].title == "ยืนยันตัวตน":
             await msg.delete()
@@ -204,14 +190,10 @@ async def sendroles(ctx):
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    global role_message_id
     if payload.message_id != role_message_id or payload.user_id == bot.user.id:
         return
 
     guild = bot.get_guild(payload.guild_id)
-    if not guild:
-        return
-
     emoji = str(payload.emoji)
     role_id = EMOJI_ROLE_MAP.get(emoji)
     if not role_id:
@@ -221,18 +203,13 @@ async def on_raw_reaction_add(payload):
     member = guild.get_member(payload.user_id)
     if role and member:
         await member.add_roles(role)
-        print(f"Added role {role.name} to {member.name}")
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    global role_message_id
     if payload.message_id != role_message_id or payload.user_id == bot.user.id:
         return
 
     guild = bot.get_guild(payload.guild_id)
-    if not guild:
-        return
-
     emoji = str(payload.emoji)
     role_id = EMOJI_ROLE_MAP.get(emoji)
     if not role_id:
@@ -242,12 +219,9 @@ async def on_raw_reaction_remove(payload):
     member = guild.get_member(payload.user_id)
     if role and member:
         await member.remove_roles(role)
-        print(f"Removed role {role.name} from {member.name}")
-
 
 server_on()
 
-# เริ่มรันบอท
 if TOKEN:
     bot.run(TOKEN)
 else:
