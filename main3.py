@@ -2,7 +2,9 @@ import discord
 from discord.ext import commands
 import json
 import os
-from myserver import server_on
+
+# ถ้าคุณมี server_on() สำหรับรันบนเว็บ ให้ใส่มาด้วย
+from myserver import server_on  
 
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
@@ -15,8 +17,9 @@ def load_json(file):
     with open(file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+# โหลดข้อมูลจากไฟล์ JSON
 manga_data = load_json("CartooTonMang/BbMangaO.json")
-ln_data = load_json("CartooTonMang/MmLineNovelO.json")
+ln_data = load_json("CartooTonMang/MmLineNovelO.json")  # สำหรับไลท์โนเวล
 
 
 def get_page_image_url(base_url: str, chapter: int, page: int):
@@ -79,23 +82,33 @@ class ReaderView(discord.ui.View):
             return await interaction.response.send_message("คุณไม่ได้เปิดหน้านี้", ephemeral=True)
         await self.update_embed(interaction)
 
+
 class ChapterSelect(discord.ui.Select):
     def __init__(self, user, title, base_url, total_chapters):
         self.user = user
         self.title = title
         self.base_url = base_url
         self.total_chapters = total_chapters
-        options = [discord.SelectOption(label=f"ตอนที่ {i}", value=str(i)) for i in range(1, total_chapters + 1)]
+        options = [
+            discord.SelectOption(label=f"ตอนที่ {i}", value=str(i)) 
+            for i in range(1, total_chapters + 1)
+        ]
         if len(options) > 25:
-            options = options[:25]  # จำกัดไม่เกิน 25 ตัวเลือก
+            options = options[:25]  # Discord จำกัดไม่เกิน 25 ตัวเลือก
         super().__init__(placeholder="เลือกตอน...", options=options)
 
     async def callback(self, interaction: discord.Interaction):
         chapter = int(self.values[0])
         await interaction.response.send_message(
             f"กำลังโหลด {self.title} ตอนที่ {chapter}...",
-            view=ReaderView(user=self.user, title=self.title, base_url=self.base_url,
-                            total_chapters=self.total_chapters, chapter=chapter, total_pages=20),
+            view=ReaderView(
+                user=self.user, 
+                title=self.title, 
+                base_url=self.base_url,
+                total_chapters=self.total_chapters, 
+                chapter=chapter, 
+                total_pages=20  # คุณสามารถเปลี่ยนจำนวนหน้าต่อบทได้
+            ),
             ephemeral=True
         )
 
@@ -107,7 +120,7 @@ class TitleDropdown(discord.ui.Select):
         self.is_manga = is_manga
         options = [
             discord.SelectOption(label=title, description=f"{info['chapters']} ตอน")
-            for title, info in list(data.items())[:25]  # จำกัดรายการไม่เกิน 25
+            for title, info in list(data.items())[:25]
         ]
         super().__init__(placeholder=f"เลือกเรื่อง {label}...", options=options)
 
@@ -163,5 +176,6 @@ async def test(ctx):
     await ctx.send("เลือกประเภทที่คุณต้องการ:", view=DropdownStart(user=ctx.author))
 
 
+# เรียกใช้ฟังก์ชันรันเซิร์ฟเวอร์ (หากใช้)
 server_on()
 bot.run(TOKEN)
