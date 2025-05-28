@@ -173,7 +173,11 @@ class DropdownStart(discord.ui.View):
 
 @bot.command()
 async def test(ctx):
-    await ctx.send("เลือกประเภทที่คุณต้องการ:", view=DropdownStart(user=ctx.author))
+    try:
+        await ctx.send("เลือกประเภทที่คุณต้องการ:", view=DropdownStart(user=ctx.author))
+    except Exception as e:
+        await ctx.send(f"เกิดข้อผิดพลาด: {str(e)}")  # ให้บอทแจ้งข้อความใน Discord ด้วย
+        print(f"[ERROR IN TEST COMMAND]: {e}")
 
 
 # เรียกใช้ฟังก์ชันรันเซิร์ฟเวอร์ (หากใช้)
