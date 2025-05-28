@@ -16,17 +16,25 @@ def load_json(file):
     with open(file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-# โหลดข้อมูล
+# โหลดข้อมูลมังงะจากไฟล์ BbMangaO.json
 manga_data = load_json("CartooTonMang/BbMangaO.json")
 ln_data = load_json("CartooTonMang/MmLineNovelO.json")
 
 
-def get_page_image_url(base_url: str, chapter: int, page: int):
-    return f"{base_url}/{chapter}/{page}.jpg"
+def get_page_image_url(base_url: str, chapter: int, page: int, nano=False):
+    """
+    สร้าง URL รูปภาพตามรูปแบบของ nano-manga หรือเว็บอื่น
+    """
+    if nano:
+        # nano-manga URL pattern (ตัวอย่าง)
+        return f"{base_url}/{chapter}/{page}.jpg"
+    else:
+        # รูปแบบทั่วไป (เช่น manga-d.com)
+        return f"{base_url}/{chapter}/{page}.jpg"
 
 
 class ReaderView(discord.ui.View):
-    def __init__(self, user, title, base_url, total_chapters, chapter, total_pages):
+    def __init__(self, user, title, base_url, total_chapters, chapter, total_pages, nano=False):
         super().__init__(timeout=None)
         self.user = user
         self.title = title
@@ -35,10 +43,11 @@ class ReaderView(discord.ui.View):
         self.page = 1
         self.total_pages = total_pages
         self.total_chapters = total_chapters
+        self.nano = nano
 
     async def update_embed(self, interaction):
         embed = discord.Embed(title=f"{self.title} - ตอนที่ {self.chapter} หน้า {self.page}")
-        embed.set_image(url=get_page_image_url(self.base_url, self.chapter, self.page))
+        embed.set_image(url=get_page_image_url(self.base_url, self.chapter, self.page, nano=self.nano))
         await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(label="⬅️ ย้อนหน้า", style=discord.ButtonStyle.primary)
@@ -83,11 +92,12 @@ class ReaderView(discord.ui.View):
 
 
 class ChapterRangeSelect(discord.ui.Select):
-    def __init__(self, user, title, base_url, total_chapters):
+    def __init__(self, user, title, base_url, total_chapters, nano=False):
         self.user = user
         self.title = title
         self.base_url = base_url
         self.total_chapters = total_chapters
+        self.nano = nano
 
         options = []
         for i in range(1, total_chapters + 1, 20):
@@ -105,17 +115,19 @@ class ChapterRangeSelect(discord.ui.Select):
             base_url=self.base_url,
             total_chapters=self.total_chapters,
             start=start,
-            end=end
+            end=end,
+            nano=self.nano
         ))
         await interaction.response.send_message("เลือกตอน:", view=view, ephemeral=True)
 
 
 class SingleChapterSelect(discord.ui.Select):
-    def __init__(self, user, title, base_url, total_chapters, start, end):
+    def __init__(self, user, title, base_url, total_chapters, start, end, nano=False):
         self.user = user
         self.title = title
         self.base_url = base_url
         self.total_chapters = total_chapters
+        self.nano = nano
 
         options = [
             discord.SelectOption(label=f"ตอนที่ {i}", value=str(i))
@@ -133,7 +145,8 @@ class SingleChapterSelect(discord.ui.Select):
                 base_url=self.base_url,
                 total_chapters=self.total_chapters,
                 chapter=chapter,
-                total_pages=20
+                total_pages=20,
+                nano=self.nano
             ),
             ephemeral=True
         )
@@ -157,7 +170,8 @@ class TitleDropdown(discord.ui.Select):
             user=self.user,
             title=title,
             base_url=info['link'],
-            total_chapters=info['chapters']
+            total_chapters=info['chapters'],
+            nano=info.get('nano', False)  # ส่ง flag nano มา
         ))
         await interaction.response.send_message(f"เลือกช่วงตอนของ **{title}**:", view=view, ephemeral=True)
 
