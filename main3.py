@@ -3,7 +3,7 @@ from discord.ext import commands
 import json
 import os
 
-from myserver import server_on  # ถ้ามีการรันบน Repl.it หรือเว็บ
+from myserver import server_on
 
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
@@ -210,4 +210,7 @@ async def test(ctx):
 
 
 server_on()
+
+
+
 bot.run(TOKEN)
