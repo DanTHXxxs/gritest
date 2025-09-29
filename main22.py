@@ -131,7 +131,7 @@ thai_months = {
     'December': 'ธันวาคม'
 }
 
-WEATHER_MESSAGE_ID = 0
+WEATHER_MESSAGE_ID = 1422258182721638410
 
 async def get_weather(location):
     async with aiohttp.ClientSession() as session:
