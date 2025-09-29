@@ -13,15 +13,11 @@ from myserver import server_on
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
 
-WEATHER_CHANNEL_ID = 1371471375361114182  # แชนแนลสำหรับอากาศ
-STATUS_CHANNEL_ID = 1371468773403660338  # แชนแนลสำหรับสถานะกลุ่ม
-GUILD_ID = 905530303467094027
+WEATHER_CHANNEL_ID = 1422251697136337039  # แชนแนลสำหรับอากาศ
 API_KEY = '56c594de7daca68b44c11aa5feb133d1'
 
 intents = discord.Intents.default()
-intents.members = True
 intents.guilds = True
-intents.presences = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -135,8 +131,7 @@ thai_months = {
     'December': 'ธันวาคม'
 }
 
-WEATHER_MESSAGE_ID = 1371491919401717770
-STATUS_MESSAGE_ID = 1371491918076448798
+WEATHER_MESSAGE_ID = 0
 
 async def get_weather(location):
     async with aiohttp.ClientSession() as session:
@@ -183,48 +178,10 @@ async def update_weather():
         WEATHER_MESSAGE_ID = msg.id
 
 
-@tasks.loop(seconds=10)
-async def update_group_status():
-    global STATUS_MESSAGE_ID
-    guild = bot.get_guild(GUILD_ID)
-    status_channel = bot.get_channel(STATUS_CHANNEL_ID)
-
-    if not guild or not status_channel:
-        return
-
-    online = sum(1 for m in guild.members if m.status != discord.Status.offline)
-    offline = guild.member_count - online
-
-    # แปลงวันที่สร้างเซิร์ฟเวอร์เป็นภาษาไทย พร้อมเวลาไทย
-    created_at = guild.created_at.astimezone(pytz.timezone("Asia/Bangkok"))
-    day_th = thai_days[created_at.strftime('%A')]
-    month_th = thai_months[created_at.strftime('%B')]
-    year_th = created_at.year + 543  # แปลงเป็น พ.ศ.
-    created_date_str = f"{day_th} {created_at.day} {month_th} {year_th} เวลา {created_at.strftime('%H:%M:%S')}"
-
-    embed = discord.Embed(title="**สถานะกลุ่ม พม่า | ขายไก่ย่าง🍗**", color=0x00cc99)
-    embed.add_field(name="〔🔨〕สร้างเมื่อ", value=created_date_str, inline=False)
-    embed.add_field(name="〔👥〕สมาชิกทั้งหมด", value=f"{guild.member_count} คน", inline=True)
-    embed.add_field(name="〔🟢〕ออนไลน์", value=f"{online} คน", inline=True)
-    embed.add_field(name="〔⚫〕ออฟไลน์", value=f"{offline} คน", inline=True)
-    embed.set_footer(text="〔🔄〕อัปเดตอัตโนมัติทุกๆ 10 วินาที")
-
-    try:
-        if STATUS_MESSAGE_ID:
-            msg = await status_channel.fetch_message(STATUS_MESSAGE_ID)
-            await msg.edit(embed=embed)
-        else:
-            msg = await status_channel.send(embed=embed)
-            STATUS_MESSAGE_ID = msg.id
-    except discord.NotFound:
-        msg = await status_channel.send(embed=embed)
-        STATUS_MESSAGE_ID = msg.id
-
 @bot.event
 async def on_ready():
     print(f"ล็อกอินแล้วเป็น {bot.user}")
     update_weather.start()
-    update_group_status.start()
 
 server_on()
 
